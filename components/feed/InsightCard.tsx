@@ -13,9 +13,15 @@ interface InsightCardProps {
     summary: string[];
     action: string;
     tags: string[];
+    kr_check: {
+        similar_service: string;
+        regulation: string;
+        barrier: string;
+    };
+    original_url: string;
 }
 
-export function InsightCard({ title, source, date, summary, action, tags }: InsightCardProps) {
+export function InsightCard({ title, source, date, summary, action, tags, kr_check, original_url }: InsightCardProps) {
     return (
         <Card className="bg-neutral-900 border-neutral-800 text-white hover:border-neutral-700 transition-colors">
             <CardHeader className="space-y-4">
@@ -23,7 +29,7 @@ export function InsightCard({ title, source, date, summary, action, tags }: Insi
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wider">
                             <Badge variant="outline" className="text-neutral-400 border-neutral-700 rounded-none px-1.5 py-0.5 text-[10px]">
-                                {source.includes("TechCrunch") ? "🇺🇸 US" : source.includes("Nikkei") ? "🇯🇵 JP" : "🇰🇷 KR"}
+                                {source.includes("TechCrunch") || source.includes("VentureBeat") ? "🇺🇸 US" : source.includes("Nikkei") ? "🇯🇵 JP" : source.includes("Platum") ? "🇰🇷 KR" : "🌐 Global"}
                             </Badge>
                             <span className="text-white font-bold">{source}</span>
                             <span>•</span>
@@ -44,7 +50,10 @@ export function InsightCard({ title, source, date, summary, action, tags }: Insi
                             variant="ghost"
                             size="icon"
                             className="text-neutral-400 hover:text-white"
-                            onClick={() => toast.info("공유 링크가 복사되었습니다.")}
+                            onClick={() => {
+                                navigator.clipboard.writeText(original_url);
+                                toast.info("공유 링크가 복사되었습니다.");
+                            }}
                         >
                             <Share2 className="w-5 h-5" />
                         </Button>
@@ -78,15 +87,17 @@ export function InsightCard({ title, source, date, summary, action, tags }: Insi
                     <div className="space-y-2 text-sm text-neutral-300">
                         <div className="flex gap-2">
                             <span className="text-neutral-500 min-w-[80px]">유사 서비스:</span>
-                            <span>국내 'OOO' 등 존재하나 초기 단계</span>
+                            <span>{kr_check.similar_service}</span>
                         </div>
                         <div className="flex gap-2">
                             <span className="text-neutral-500 min-w-[80px]">규제 이슈:</span>
-                            <span>금융위 인허가 필요 가능성 높음</span>
+                            <span>{kr_check.regulation}</span>
                         </div>
                         <div className="flex gap-2">
                             <span className="text-neutral-500 min-w-[80px]">진입 장벽:</span>
-                            <span className="text-yellow-500 font-bold">중간 (Medium)</span>
+                            <span className={`font-bold ${kr_check.barrier.includes("높음") ? "text-red-500" : kr_check.barrier.includes("중간") ? "text-yellow-500" : "text-green-500"}`}>
+                                {kr_check.barrier}
+                            </span>
                         </div>
                     </div>
                     <p className="text-[10px] text-neutral-600 mt-3">* 본 분석은 참고용이며, 사업 판단은 본인 책임입니다.</p>
@@ -101,7 +112,7 @@ export function InsightCard({ title, source, date, summary, action, tags }: Insi
                 <Button
                     variant="link"
                     className="text-white hover:text-neutral-300 p-0 h-auto font-bold"
-                    onClick={() => toast.info("원본 소스로 이동합니다...")}
+                    onClick={() => window.open(original_url, "_blank")}
                 >
                     원문 보기 <ExternalLink className="ml-2 w-4 h-4" />
                 </Button>
