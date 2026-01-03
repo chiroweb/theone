@@ -26,6 +26,7 @@ export async function GET() {
         ];
 
         const results = [];
+        const errors = [];
 
         for (const feedInfo of feeds) {
             try {
@@ -43,16 +44,20 @@ export async function GET() {
                         .eq('original_url', item.link)
                         .single();
 
-                    if (existing) continue;
+                    if (existing) {
+                        results.push({ title: item.title, status: 'skipped (exists)' });
+                        continue;
+                    }
 
                     // 2. Summarize with Claude (Expert Persona)
-                    const message = await anthropic.messages.create({
-                        model: "claude-3-5-sonnet-20240620",
-                        max_tokens: 1024,
-                        messages: [
-                            {
-                                role: "user",
-                                content: `당신은 객관적이고 냉철한 비즈니스 분석가입니다. 
+                    try {
+                        const message = await anthropic.messages.create({
+                            model: "claude-3-5-sonnet-20240620",
+                            max_tokens: 1024,
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: `당신은 객관적이고 냉철한 비즈니스 분석가입니다. 
 감정을 배제하고, 사실과 데이터에 기반하여 한국 사업가에게 실질적인 도움이 되는 정보를 제공하세요.
 전문적인 용어를 적절히 사용하되, 명확하고 간결하게 작성하십시오.
 
@@ -73,49 +78,55 @@ export async function GET() {
 }
 
 JSON만 응답하세요.`
-                            }
-                        ],
-                    });
+                                }
+                            ],
+                        });
 
-                    const responseText = message.content[0].type === 'text'
-                        ? message.content[0].text
-                        : '{}';
+                        const responseText = message.content[0].type === 'text'
+                            ? message.content[0].text
+                            : '{}';
 
-                    let analysis;
-                    try {
-                        analysis = JSON.parse(responseText);
-                    } catch (e) {
-                        console.error("Failed to parse JSON for item:", item.title);
-                        continue;
-                    }
+                        let analysis;
+                        try {
+                            analysis = JSON.parse(responseText);
+                        } catch (e) {
+                            console.error("Failed to parse JSON for item:", item.title);
+                            errors.push({ source: feedInfo.source, title: item.title, error: 'JSON Parse Error' });
+                            continue;
+                        }
 
-                    // 3. Save to Supabase
-                    const { error } = await supabase.from('insights').insert({
-                        source: feedInfo.source,
-                        country: feedInfo.country,
-                        original_url: item.link,
-                        original_title: item.title,
-                        ai_summary: analysis.summary?.join('\n') || '',
-                        action_idea: analysis.action_idea || '',
-                        kr_check_similar: analysis.kr_check?.similar_service || '',
-                        kr_check_regulation: analysis.kr_check?.regulation || '',
-                        kr_check_barrier: analysis.kr_check?.barrier || '',
-                        created_at: new Date().toISOString(),
-                    });
+                        // 3. Save to Supabase
+                        const { error } = await supabase.from('insights').insert({
+                            source: feedInfo.source,
+                            country: feedInfo.country,
+                            original_url: item.link,
+                            original_title: item.title,
+                            ai_summary: analysis.summary?.join('\n') || '',
+                            action_idea: analysis.action_idea || '',
+                            kr_check_similar: analysis.kr_check?.similar_service || '',
+                            kr_check_regulation: analysis.kr_check?.regulation || '',
+                            kr_check_barrier: analysis.kr_check?.barrier || '',
+                            created_at: new Date().toISOString(),
+                        });
 
-                    if (error) {
-                        console.error("Supabase Insert Error:", error);
-                    } else {
-                        results.push({ title: item.title, status: 'saved' });
+                        if (error) {
+                            console.error("Supabase Insert Error:", error);
+                            errors.push({ source: feedInfo.source, title: item.title, error: `Supabase Error: ${error.message}` });
+                        } else {
+                            results.push({ title: item.title, status: 'saved' });
+                        }
+                    } catch (aiError: any) {
+                        console.error("AI Error:", aiError);
+                        errors.push({ source: feedInfo.source, title: item.title, error: `AI Error: ${aiError.message}` });
                     }
                 }
-            } catch (feedError) {
+            } catch (feedError: any) {
                 console.error(`Failed to fetch feed ${feedInfo.source}:`, feedError);
-                // Continue to next feed
+                errors.push({ source: feedInfo.source, error: `Feed Fetch Error: ${feedError.message}` });
             }
         }
 
-        return Response.json({ success: true, processed: results });
+        return Response.json({ success: true, processed: results, errors: errors });
     } catch (error) {
         console.error('Cron Job Error:', error);
         return Response.json({ error: 'Internal Server Error' }, { status: 500 });
