@@ -4,10 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Key } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
     const [code, setCode] = useState("");
+
+    const router = useRouter();
+
+    const handleLogin = () => {
+        if (code === "xxxx") {
+            toast.success("Access Granted. Welcome to The One.");
+            router.push("/dashboard");
+        } else {
+            toast.error("Access Denied. Invalid Private Key.");
+        }
+    };
 
     return (
         <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8 relative overflow-hidden">
@@ -34,15 +47,17 @@ export default function LoginPage() {
                                 className="bg-neutral-900 border-neutral-800 text-white pl-10 h-14 rounded-none focus:border-white transition-colors font-mono tracking-widest text-center"
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                             />
                         </div>
                     </div>
 
-                    <Link href="/dashboard">
-                        <Button className="w-full h-14 bg-white text-black hover:bg-neutral-200 rounded-none font-bold text-lg tracking-wide mt-4">
-                            ENTER THE FORTRESS
-                        </Button>
-                    </Link>
+                    <Button
+                        onClick={handleLogin}
+                        className="w-full h-14 bg-white text-black hover:bg-neutral-200 rounded-none font-bold text-lg tracking-wide mt-4"
+                    >
+                        ENTER THE FORTRESS
+                    </Button>
                 </div>
 
                 <div className="text-center space-y-4">
