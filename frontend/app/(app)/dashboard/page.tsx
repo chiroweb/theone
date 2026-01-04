@@ -2,7 +2,7 @@
 
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { TierBadge } from "@/components/dashboard/TierBadge";
-import { PipelineConfiguration } from "@/components/dashboard/PipelineConfiguration";
+import { PipelineConfiguration } from "../../../components/dashboard/PipelineConfiguration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Bookmark, FileText, MessageSquare } from "lucide-react";
