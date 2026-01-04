@@ -1,7 +1,7 @@
 "use client";
 
 import { ChatWindow } from "@/components/chat/ChatWindow";
-import { ProfileRow } from "@/components/pipeline/ProfileRow";
+import { ProfileRow } from "../../../components/pipeline/ProfileRow";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";

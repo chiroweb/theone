@@ -1,8 +1,8 @@
 "use client";
 
-import { DiscussionRow } from "@/components/lounge/DiscussionRow";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DiscussionRow } from "../../../components/lounge/DiscussionRow";
+import { Button } from "../../../components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
