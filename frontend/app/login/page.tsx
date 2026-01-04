@@ -15,14 +15,12 @@ export default function LoginPage() {
     const router = useRouter();
 
     const handleLogin = async () => {
-        try {
-            const response = await api.post('/auth/login', { accessCode: code });
-            if (response.data.access_token) {
-                localStorage.setItem('access_token', response.data.access_token);
-                toast.success("Access Granted. Welcome to The One.");
-                router.push("/dashboard");
-            }
-        } catch (error) {
+        // Temporary client-side check until backend is deployed
+        if (code === "xxxx") {
+            localStorage.setItem('access_token', "mock-token-for-demo");
+            toast.success("Access Granted. Welcome to The One.");
+            router.push("/dashboard");
+        } else {
             toast.error("Access Denied. Invalid Private Key.");
         }
     };
