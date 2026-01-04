@@ -2,7 +2,7 @@
 
 import { InsightCard } from "@/components/feed/InsightCard";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api } from "../../../lib/api";
 import { toast } from "sonner";
 
 interface Insight {
