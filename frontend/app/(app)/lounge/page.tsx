@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { DiscussionRow } from "../../../components/lounge/DiscussionRow";
 import { Button } from "../../../components/ui/button";
 import { Plus } from "lucide-react";
@@ -89,7 +90,7 @@ const CATEGORY_MAP: Record<string, string> = {
     free: "자유게시판",
 };
 
-export default function LoungePage() {
+function LoungeContent() {
     const searchParams = useSearchParams();
     const categoryKey = searchParams.get("category");
     const categoryName = categoryKey ? CATEGORY_MAP[categoryKey] : "전체보기";
@@ -159,5 +160,13 @@ export default function LoungePage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoungePage() {
+    return (
+        <Suspense fallback={<div className="text-white">Loading...</div>}>
+            <LoungeContent />
+        </Suspense>
     );
 }
