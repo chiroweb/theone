@@ -29,11 +29,17 @@ const navItems = [
         href: "/lounge",
         icon: MessageSquare,
         children: [
-            { name: "전체보기", href: "/lounge" },
-            { name: "비즈니스", href: "/lounge?category=business" },
-            { name: "경제/금융", href: "/lounge?category=economy" },
-            { name: "정책/법률", href: "/lounge?category=policy" },
-            { name: "네트워킹", href: "/lounge?category=networking" },
+            {
+                name: "비즈게시판",
+                href: "/lounge?board=biz", // Group identifier
+                children: [
+                    { name: "전체보기", href: "/lounge?category=biz_all" },
+                    { name: "비즈니스", href: "/lounge?category=business" },
+                    { name: "경제/금융", href: "/lounge?category=economy" },
+                    { name: "정책/법률", href: "/lounge?category=policy" },
+                    { name: "네트워킹", href: "/lounge?category=networking" },
+                ]
+            },
             { name: "자유게시판", href: "/lounge?category=free" },
         ]
     },
@@ -77,7 +83,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         isActive && !hasChildren
                             ? "bg-white text-black font-medium"
                             : "text-neutral-400 hover:text-white hover:bg-neutral-900",
-                        depth > 0 && "pl-12 text-sm py-2"
+                        depth === 1 && "pl-12 text-sm py-2",
+                        depth === 2 && "pl-20 text-sm py-2"
                     )}>
                         <div className="flex items-center gap-3">
                             {item.icon && <item.icon className="w-5 h-5" />}

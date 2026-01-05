@@ -64,7 +64,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="text-center space-y-4">
-                    <Link href="/apply" className="block text-neutral-500 hover:text-white text-xs tracking-widest uppercase transition-colors">
+                    <Link href="/signup" className="block text-neutral-500 hover:text-white text-xs tracking-widest uppercase transition-colors">
                         Not a member? Apply for access
                     </Link>
                     <Link href="/" className="text-neutral-600 hover:text-white text-sm flex items-center justify-center gap-2 transition-colors">

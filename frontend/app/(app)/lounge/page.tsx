@@ -93,10 +93,14 @@ const CATEGORY_MAP: Record<string, string> = {
 function LoungeContent() {
     const searchParams = useSearchParams();
     const categoryKey = searchParams.get("category");
-    const categoryName = categoryKey ? CATEGORY_MAP[categoryKey] : "전체보기";
+    const categoryName = categoryKey
+        ? (CATEGORY_MAP[categoryKey] || (categoryKey === 'biz_all' ? '비즈게시판 전체' : '전체보기'))
+        : "전체보기";
 
     const filteredPosts = categoryKey
-        ? ALL_POSTS.filter(post => post.categoryKey === categoryKey)
+        ? (categoryKey === 'biz_all'
+            ? ALL_POSTS.filter(post => post.categoryKey !== 'free')
+            : ALL_POSTS.filter(post => post.categoryKey === categoryKey))
         : ALL_POSTS;
 
     return (
