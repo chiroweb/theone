@@ -13,9 +13,10 @@ interface DiscussionRowProps {
     lastActive: string;
     category: string;
     isHot?: boolean;
+    type?: string;
 }
 
-export function DiscussionRow({ id, title, author, replies, views, lastActive, category, isHot }: DiscussionRowProps) {
+export function DiscussionRow({ id, title, author, replies, views, lastActive, category, isHot, type }: DiscussionRowProps) {
     return (
         <Link href={`/lounge/${id}`} className="block group">
             <div className="flex items-center justify-between p-6 border-b border-neutral-800 bg-black hover:bg-neutral-900 transition-colors">
@@ -29,9 +30,14 @@ export function DiscussionRow({ id, title, author, replies, views, lastActive, c
                                 HOT
                             </Badge>
                         )}
+                        {type === 'question' && (
+                            <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20 rounded-none text-[10px] uppercase tracking-wider font-bold">
+                                질문
+                            </Badge>
+                        )}
                     </div>
                     <h3 className="text-lg font-medium text-white group-hover:underline decoration-1 underline-offset-4 truncate">
-                        {title}
+                        {title.replace("[질문] ", "")}
                     </h3>
                     <p className="text-sm text-neutral-500 mt-1">
                         작성자 <span className="text-neutral-300">{author}</span>

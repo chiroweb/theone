@@ -11,7 +11,8 @@ import {
     Menu,
     User,
     MessageCircle,
-    Search
+    Search,
+    ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -21,7 +22,19 @@ import { cn } from "@/lib/utils";
 const navItems = [
     { name: "인사이트 피드", href: "/feed", icon: Zap },
     { name: "파이프라인", href: "/pipeline", icon: Briefcase },
-    { name: "라운지", href: "/lounge", icon: MessageSquare },
+    {
+        name: "라운지",
+        href: "/lounge",
+        icon: MessageSquare,
+        children: [
+            { name: "전체보기", href: "/lounge" },
+            { name: "비즈니스", href: "/lounge?category=business" },
+            { name: "경제/금융", href: "/lounge?category=economy" },
+            { name: "정책/법률", href: "/lounge?category=policy" },
+            { name: "네트워킹", href: "/lounge?category=networking" },
+            { name: "자유게시판", href: "/lounge?category=free" },
+        ]
+    },
     { name: "대시보드", href: "/dashboard", icon: LayoutDashboard },
     { name: "검색", href: "/search", icon: Search },
     { name: "내 정보", href: "/my-info", icon: User },
@@ -31,6 +44,56 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const [expandedItems, setExpandedItems] = useState<string[]>(["/lounge"]);
+
+    const toggleExpand = (href: string) => {
+        setExpandedItems(prev =>
+            prev.includes(href) ? prev.filter(item => item !== href) : [...prev, href]
+        );
+    };
+
+    const renderNavItem = (item: any, depth = 0) => {
+        const isActive = pathname === item.href || (item.children && item.children.some((child: any) => pathname === child.href));
+        const isExpanded = expandedItems.includes(item.href);
+        const hasChildren = item.children && item.children.length > 0;
+
+        return (
+            <div key={item.href}>
+                <Link
+                    href={item.href}
+                    onClick={(e) => {
+                        if (hasChildren) {
+                            e.preventDefault();
+                            toggleExpand(item.href);
+                        } else {
+                            setIsOpen(false);
+                        }
+                    }}
+                >
+                    <div className={cn(
+                        "flex items-center justify-between px-4 py-3 rounded-none transition-all duration-200 cursor-pointer",
+                        isActive && !hasChildren
+                            ? "bg-white text-black font-medium"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900",
+                        depth > 0 && "pl-12 text-sm py-2"
+                    )}>
+                        <div className="flex items-center gap-3">
+                            {item.icon && <item.icon className="w-5 h-5" />}
+                            <span>{item.name}</span>
+                        </div>
+                        {hasChildren && (
+                            <ChevronDown className={cn("w-4 h-4 transition-transform", isExpanded ? "rotate-180" : "")} />
+                        )}
+                    </div>
+                </Link>
+                {hasChildren && isExpanded && (
+                    <div className="border-l border-neutral-800 ml-6 my-1">
+                        {item.children.map((child: any) => renderNavItem(child, depth + 1))}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="min-h-screen bg-black text-white flex">
@@ -41,23 +104,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         THE 1%
                     </h1>
                 </div>
-                <nav className="flex-1 px-4 space-y-2">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link key={item.href} href={item.href}>
-                                <div className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-none transition-all duration-200",
-                                    isActive
-                                        ? "bg-white text-black font-medium"
-                                        : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                                )}>
-                                    <item.icon className="w-5 h-5" />
-                                    <span>{item.name}</span>
-                                </div>
-                            </Link>
-                        );
-                    })}
+                <nav className="flex-1 px-4 space-y-1">
+                    {navItems.map((item) => renderNavItem(item))}
                 </nav>
                 <div className="p-8 border-t border-neutral-800">
                     <div className="flex items-center gap-3">
@@ -87,20 +135,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 THE 1%
                             </h1>
                         </div>
-                        <nav className="flex-1 px-4 space-y-2">
-                            {navItems.map((item) => (
-                                <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}>
-                                    <div className={cn(
-                                        "flex items-center gap-3 px-4 py-3 rounded-none transition-all duration-200",
-                                        pathname === item.href
-                                            ? "bg-white text-black font-medium"
-                                            : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-                                    )}>
-                                        <item.icon className="w-5 h-5" />
-                                        <span>{item.name}</span>
-                                    </div>
-                                </Link>
-                            ))}
+                        <nav className="flex-1 px-4 space-y-1">
+                            {navItems.map((item) => renderNavItem(item))}
                         </nav>
                     </SheetContent>
                 </Sheet>

@@ -89,8 +89,15 @@ export default function PostDetailPage() {
                             <p className="text-xs text-neutral-500">{MOCK_POST.author.role} · {MOCK_POST.stats.time}</p>
                         </div>
                     </div>
-                    <div className="text-xs text-neutral-500">
-                        조회 {MOCK_POST.stats.views.toLocaleString()}
+                    <div className="flex items-center gap-4">
+                        <div className="text-xs text-neutral-500">
+                            조회 {MOCK_POST.stats.views.toLocaleString()}
+                        </div>
+                        {/* Mock Author Actions */}
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm" className="text-neutral-400 hover:text-white h-8">수정</Button>
+                            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-400 hover:bg-red-500/10 h-8">삭제</Button>
+                        </div>
                     </div>
                 </div>
             </div>
