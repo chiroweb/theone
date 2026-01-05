@@ -8,7 +8,10 @@ import {
     Zap,
     Briefcase,
     MessageSquare,
-    Menu
+    Menu,
+    User,
+    MessageCircle,
+    Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -20,6 +23,9 @@ const navItems = [
     { name: "파이프라인", href: "/pipeline", icon: Briefcase },
     { name: "라운지", href: "/lounge", icon: MessageSquare },
     { name: "대시보드", href: "/dashboard", icon: LayoutDashboard },
+    { name: "검색", href: "/search", icon: Search },
+    { name: "내 정보", href: "/my-info", icon: User },
+    { name: "채팅", href: "/chat", icon: MessageCircle },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
