@@ -12,7 +12,8 @@ import {
     User,
     MessageCircle,
     Search,
-    ChevronDown
+    ChevronDown,
+    FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
     { name: "인사이트 피드", href: "/feed", icon: Zap },
     { name: "파이프라인", href: "/pipeline", icon: Briefcase },
+    { name: "The 1% 자료실", href: "/library", icon: FolderOpen },
     {
         name: "라운지",
         href: "/lounge",
