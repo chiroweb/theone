@@ -84,17 +84,7 @@ export function StepBasicInfo({ data, updateData }: StepProps) {
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="password" className="text-neutral-300">비밀번호 설정</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={data.password || ""}
-                        onChange={(e) => updateData({ password: e.target.value })}
-                        placeholder="8자 이상 입력"
-                        className="bg-neutral-900 border-neutral-800 text-white h-14 rounded-none focus:border-white transition-colors"
-                    />
-                </div>
+
 
                 <div className="space-y-2">
                     <Label htmlFor="location" className="text-neutral-300">거주 지역</Label>

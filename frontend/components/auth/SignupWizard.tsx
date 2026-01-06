@@ -24,13 +24,21 @@ export function SignupWizard() {
 
     const nextStep = () => {
         if (canProceed()) {
-            setStep(prev => prev + 1);
+            if (step === 2 && formData.role === "invited") {
+                setStep(4); // Skip Step 3 for invited users
+            } else {
+                setStep(prev => prev + 1);
+            }
             window.scrollTo(0, 0);
         }
     };
 
     const prevStep = () => {
-        setStep(prev => prev - 1);
+        if (step === 4 && formData.role === "invited") {
+            setStep(2); // Go back to Step 2 for invited users
+        } else {
+            setStep(prev => prev - 1);
+        }
         window.scrollTo(0, 0);
     };
 
@@ -80,7 +88,7 @@ export function SignupWizard() {
     const isLastStep = step === 4;
 
     const canProceed = () => {
-        if (step === 1) return !!(formData.name && formData.email && formData.password && formData.phone);
+        if (step === 1) return !!(formData.name && formData.email && formData.phone);
         if (step === 2) return !!formData.role;
         if (step === 3) {
             if (formData.role === "business") {

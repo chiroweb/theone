@@ -2,13 +2,12 @@ export interface SignupFormData {
     // Step 1: Identity
     name: string;
     email: string;
-    password?: string; // New
     phone: string;
     location: string;
     isPhoneVerified?: boolean; // New
 
     // Step 2: User Type
-    role: "business" | "founder" | null;
+    role: "business" | "founder" | "invited" | null;
 
     // Step 3-A: Business
     companyName?: string;

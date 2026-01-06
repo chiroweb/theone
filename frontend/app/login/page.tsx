@@ -2,20 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Key } from "lucide-react";
+import { ArrowLeft, Key, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { api } from "../../lib/api";
 
 export default function LoginPage() {
     const [code, setCode] = useState("");
-
     const router = useRouter();
 
     const handleLogin = async () => {
-        // Temporary client-side check until backend is deployed
+        // Temporary manual check
         if (code === "xxxx") {
             localStorage.setItem('access_token', "mock-token-for-demo");
             toast.success("Access Granted. Welcome to The One.");
@@ -35,8 +33,8 @@ export default function LoginPage() {
                     <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-tighter">
                         MEMBER ACCESS
                     </h1>
-                    <p className="text-neutral-500 uppercase tracking-widest text-sm">
-                        Enter your private key
+                    <p className="text-neutral-500 uppercase tracking-widest text-xs">
+                        Enter your private access code
                     </p>
                 </div>
 
@@ -63,13 +61,21 @@ export default function LoginPage() {
                     </Button>
                 </div>
 
-                <div className="text-center space-y-4">
-                    <Link href="/signup" className="block text-neutral-500 hover:text-white text-xs tracking-widest uppercase transition-colors">
-                        Not a member? Apply for access
-                    </Link>
-                    <Link href="/" className="text-neutral-600 hover:text-white text-sm flex items-center justify-center gap-2 transition-colors">
-                        <ArrowLeft className="w-4 h-4" /> BACK TO GATEWAY
-                    </Link>
+                <div className="text-center space-y-6">
+                    <div className="space-y-2">
+                        <p className="text-neutral-600 text-xs">
+                            Access is restricted to verified members only.
+                        </p>
+                    </div>
+
+                    <div className="pt-8 border-t border-neutral-900 flex flex-col gap-4">
+                        <Link href="/" className="text-neutral-500 hover:text-white text-xs tracking-widest uppercase transition-colors flex items-center justify-center gap-2">
+                            <ArrowLeft className="w-3 h-3" /> Back to Home
+                        </Link>
+                        <Link href="/apply" className="text-white hover:text-neutral-300 text-xs tracking-widest uppercase transition-colors border border-white/20 p-3 hover:bg-white/5">
+                            Apply for Membership <ArrowRight className="w-3 h-3 inline ml-1" />
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
