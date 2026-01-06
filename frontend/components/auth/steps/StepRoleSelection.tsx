@@ -32,13 +32,19 @@ export function StepRoleSelection({ data, updateData }: StepProps) {
                         <Building2 className="w-8 h-8" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold mb-2">사업가</h3>
-                        <p className="text-sm text-neutral-400 leading-relaxed">
-                            현재 사업체를 운영 중이며, 실질적인 비즈니스 네트워킹과 확장을 목표로 하는 분.
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-xl font-bold">사업가</h3>
+                        </div>
+                        <p className="text-sm text-neutral-400 leading-relaxed mb-4">
+                            사업자등록증 보유 및 실제 운영 중인 대표/임원.
                         </p>
-                        <ul className="mt-4 text-xs text-neutral-500 space-y-1">
-                            <li>• 필수: 사업자등록증 확인</li>
-                            <li>• 필수: 직책 및 매출 규모 확인</li>
+                        <div className="pt-4 border-t border-neutral-800">
+                            <p className="text-xs font-bold text-neutral-300 mb-2">검증 초점</p>
+                            <p className="text-xs text-neutral-500">"진짜 사업하는 사람인가"</p>
+                        </div>
+                        <ul className="mt-3 text-xs text-neutral-500 space-y-1">
+                            <li>• 사업자등록증 확인 (필수)</li>
+                            <li>• 직책 및 매출 규모 확인</li>
                         </ul>
                     </div>
                 </button>
@@ -57,13 +63,19 @@ export function StepRoleSelection({ data, updateData }: StepProps) {
                         <Rocket className="w-8 h-8" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold mb-2">창업자 (예비/초기)</h3>
-                        <p className="text-sm text-neutral-400 leading-relaxed">
-                            혁신적인 아이디어로 창업을 준비 중이거나 초기 단계에 있는 분.
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-xl font-bold">창업자 (예비/초기)</h3>
+                        </div>
+                        <p className="text-sm text-neutral-400 leading-relaxed mb-4">
+                            아직 법인/사업자는 없으나 구체적인 비전이 있는 분.
                         </p>
-                        <ul className="mt-4 text-xs text-neutral-500 space-y-1">
-                            <li>• 필수: 포트폴리오/이력 확인</li>
-                            <li>• 심사: 성장 잠재력 및 전문성</li>
+                        <div className="pt-4 border-t border-neutral-800">
+                            <p className="text-xs font-bold text-neutral-300 mb-2">검증 초점</p>
+                            <p className="text-xs text-neutral-500">"기여할 수 있는 사람인가"</p>
+                        </div>
+                        <ul className="mt-3 text-xs text-neutral-500 space-y-1">
+                            <li>• 포트폴리오/이력 (필수)</li>
+                            <li>• 구체적인 자기소개 (300자)</li>
                         </ul>
                     </div>
                 </button>

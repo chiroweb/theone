@@ -1,33 +1,40 @@
-export type UserRole = "business" | "founder" | null;
-
 export interface SignupFormData {
-    // Step 1: Basic
+    // Step 1: Identity
     name: string;
     email: string;
+    password?: string; // New
     phone: string;
     location: string;
+    isPhoneVerified?: boolean; // New
 
-    // Step 2: Role
-    role: UserRole;
+    // Step 2: User Type
+    role: "business" | "founder" | null;
 
-    // Step 3A: Business
+    // Step 3-A: Business
     companyName?: string;
     jobTitle?: string;
-    bizRegistrationNumber?: string;
+    bizRegistrationNumber?: string; // New
+    isBizVerified?: boolean; // New
     revenue?: string;
-    industry?: string;
-    subIndustry?: string;
+    employeeCount?: string; // New
     website?: string;
+    industry?: string; // New
 
-    // Step 3B: Founder
+    // Step 3-B: Founder
     startupField?: string;
     founderBio?: string;
-    portfolioUrl?: string; // or file path mock
+    briefBio?: string; // Deprecated? Keeping for compatibility if needed, but focus on founderBio
     expertRoles?: string[];
+    portfolioUrl?: string;
+    startupStage?: string; // New
 
     // Step 4: Common
-    motivation?: string;
-    contribution?: string;
+    motivation: string; // "Take" related?
+    contribution: string; // "Give" related?
+    giveElements?: string[]; // New
+    takeElements?: string[]; // New
+    referralCode?: string; // New
+    termsAgreed?: boolean; // New
 }
 
 export const INITIAL_DATA: SignupFormData = {
@@ -36,4 +43,8 @@ export const INITIAL_DATA: SignupFormData = {
     phone: "",
     location: "",
     role: null,
+    companyName: "",
+    jobTitle: "",
+    motivation: "",
+    contribution: "",
 };

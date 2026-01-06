@@ -8,10 +8,9 @@ import { StepBusinessForm } from "./steps/StepBusinessForm";
 import { StepFounderForm } from "./steps/StepFounderForm";
 import { StepCommonInfo } from "./steps/StepCommonInfo";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 
 export function SignupWizard() {
     const router = useRouter();
@@ -23,16 +22,37 @@ export function SignupWizard() {
         setFormData(prev => ({ ...prev, ...newData }));
     };
 
-    const nextStep = () => setStep(prev => prev + 1);
-    const prevStep = () => setStep(prev => prev - 1);
+    const nextStep = () => {
+        if (canProceed()) {
+            setStep(prev => prev + 1);
+            window.scrollTo(0, 0);
+        }
+    };
+
+    const prevStep = () => {
+        setStep(prev => prev - 1);
+        window.scrollTo(0, 0);
+    };
 
     const handleSubmit = async () => {
+        if (!formData.termsAgreed) {
+            toast.error("약관에 동의해주세요.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             // Mock API call
             await new Promise(resolve => setTimeout(resolve, 2000));
-            toast.success("가입 신청이 완료되었습니다.");
-            router.push("/login");
+
+            if (formData.referralCode) {
+                toast.success("가입 신청 완료! 추천인 코드로 임시 입장이 허용됩니다.");
+                // Redirect to lounge (Immediate Access)
+                router.push("/lounge");
+            } else {
+                toast.success("가입 신청서가 제출되었습니다. 심사 결과는 메일로 안내드립니다.");
+                router.push("/login?pending=true");
+            }
         } catch (error) {
             toast.error("오류가 발생했습니다.");
         } finally {
@@ -58,10 +78,20 @@ export function SignupWizard() {
     };
 
     const isLastStep = step === 4;
+
     const canProceed = () => {
-        if (step === 1) return formData.name && formData.email && formData.phone;
-        if (step === 2) return formData.role;
-        // Add more validation logic as needed
+        if (step === 1) return !!(formData.name && formData.email && formData.password && formData.phone);
+        if (step === 2) return !!formData.role;
+        if (step === 3) {
+            if (formData.role === "business") {
+                // Must have Biz Number verified for Business
+                // return !!formData.isBizVerified && !!formData.jobTitle; // Strict
+                return !!formData.bizRegistrationNumber; // Lenient for UX preview
+            } else {
+                // Must have Bio and Portfolio for Founder
+                return !!formData.portfolioUrl && (formData.founderBio?.length || 0) >= 10; // Lenient length for testing, ideally 300
+            }
+        }
         return true;
     };
 
@@ -73,7 +103,7 @@ export function SignupWizard() {
                 {[1, 2, 3, 4].map((s) => (
                     <div
                         key={s}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 z-10
                             ${step >= s
                                 ? "bg-white text-black border-white"
                                 : "bg-black text-neutral-500 border-neutral-800"
@@ -84,11 +114,11 @@ export function SignupWizard() {
                 ))}
             </div>
 
-            <div className="bg-black border border-neutral-900 p-8 md:p-12 min-h-[400px]">
+            <div className="bg-black border border-neutral-900 p-6 md:p-12 min-h-[400px]">
                 {renderStep()}
             </div>
 
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between mt-8 mb-20">
                 <Button
                     variant="ghost"
                     disabled={step === 1}
@@ -102,16 +132,23 @@ export function SignupWizard() {
                 {isLastStep ? (
                     <Button
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className="bg-white text-black hover:bg-neutral-200 px-8 py-6 text-lg font-bold rounded-none"
+                        disabled={isSubmitting || !formData.termsAgreed}
+                        className="bg-white text-black hover:bg-neutral-200 px-8 py-6 text-lg font-bold rounded-none min-w-[160px]"
                     >
-                        신청서 제출
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                제출 중...
+                            </>
+                        ) : (
+                            "신청서 제출"
+                        )}
                     </Button>
                 ) : (
                     <Button
                         onClick={nextStep}
                         disabled={!canProceed()}
-                        className="bg-white text-black hover:bg-neutral-200 px-8 py-6 text-lg font-bold rounded-none"
+                        className="bg-white text-black hover:bg-neutral-200 px-8 py-6 text-lg font-bold rounded-none min-w-[160px]"
                     >
                         다음
                         <ArrowRight className="w-4 h-4 ml-2" />
