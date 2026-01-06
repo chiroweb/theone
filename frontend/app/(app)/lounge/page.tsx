@@ -128,14 +128,25 @@ function LoungeContent() {
                     총 <span className="text-white font-bold">{filteredPosts.length}</span>개의 글
                 </div>
 
-                {/* Sorting Dropdown */}
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-neutral-500">정렬:</span>
-                    <select className="bg-neutral-900 border border-neutral-800 text-white text-sm p-2 rounded-none focus:outline-none focus:border-white">
-                        <option value="latest">최신순</option>
-                        <option value="popular">인기순</option>
-                        <option value="comments">댓글순</option>
-                    </select>
+                {/* Search and Sort */}
+                <div className="flex flex-1 md:justify-end items-center gap-3">
+                    <div className="relative w-full md:w-64">
+                        <input
+                            type="text"
+                            placeholder="제목, 내용 검색"
+                            className="w-full bg-neutral-900 border border-neutral-800 text-sm text-white px-3 py-2 rounded-none focus:outline-none focus:border-white"
+                        />
+                    </div>
+
+                    {/* Sorting Dropdown */}
+                    <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-sm text-neutral-500">정렬:</span>
+                        <select className="bg-neutral-900 border border-neutral-800 text-white text-sm p-2 rounded-none focus:outline-none focus:border-white">
+                            <option value="latest">최신순</option>
+                            <option value="popular">인기순</option>
+                            <option value="comments">댓글순</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
