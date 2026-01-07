@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { DiscussionRow } from "../../../components/lounge/DiscussionRow";
 import { Button } from "../../../components/ui/button";
 import { Plus } from "lucide-react";
+import { socket, SOCKET_EVENTS } from "../../../lib/socket";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -93,15 +94,79 @@ const CATEGORY_MAP: Record<string, string> = {
 function LoungeContent() {
     const searchParams = useSearchParams();
     const categoryKey = searchParams.get("category");
+    const [posts, setPosts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
     const categoryName = categoryKey
         ? (CATEGORY_MAP[categoryKey] || (categoryKey === 'biz_all' ? '비즈게시판 전체' : '전체보기'))
         : "전체보기";
 
-    const filteredPosts = categoryKey
-        ? (categoryKey === 'biz_all'
-            ? ALL_POSTS.filter(post => post.categoryKey !== 'free')
-            : ALL_POSTS.filter(post => post.categoryKey === categoryKey))
-        : ALL_POSTS;
+    // Fetch Initial Data
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                setLoading(true);
+                const query = categoryKey && categoryKey !== 'biz_all' ? `?category=${categoryKey}` : '';
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/posts${query}`);
+                const data = await response.json();
+
+                if (data.data) {
+                    const mapped = data.data.map((p: any) => ({
+                        id: p.id,
+                        title: p.title,
+                        author: p.author?.name || 'Unknown',
+                        replies: p.commentCount || 0,
+                        views: p.views || 0,
+                        lastActive: new Date(p.createdAt).toLocaleDateString(), // Simply format date for now
+                        category: p.category, // Assuming API category matches UI keys or display names
+                        categoryKey: p.category,
+                        isHot: (p.views || 0) > 100, // Simple logic
+                        type: "general" // Default for now
+                    }));
+                    setPosts(mapped);
+                }
+            } catch (error) {
+                console.error("Failed to fetch posts:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, [categoryKey]);
+
+    // Socket Connection
+    useEffect(() => {
+        if (!socket.connected) {
+            socket.connect();
+        }
+
+        const handleNewPost = (newPost: any) => {
+            // Check if post belongs to current category filter
+            if (categoryKey && categoryKey !== 'biz_all' && newPost.category !== categoryKey) return;
+
+            setPosts(prev => [{
+                id: newPost.id,
+                title: newPost.title,
+                author: 'Me', // Newly created posts by 'Me' (or fetch author details if broadcasted)
+                replies: 0,
+                views: 0,
+                lastActive: '방금 전',
+                category: newPost.category,
+                categoryKey: newPost.category,
+                isHot: false,
+                type: "general"
+            }, ...prev]);
+        };
+
+        socket.on(SOCKET_EVENTS.POST_CREATE, handleNewPost);
+
+        return () => {
+            socket.off(SOCKET_EVENTS.POST_CREATE, handleNewPost);
+        };
+    }, [categoryKey]);
+
+    const filteredPosts = posts;
 
     return (
         <div className="space-y-8">

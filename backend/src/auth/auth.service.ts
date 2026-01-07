@@ -9,12 +9,11 @@ export class AuthService {
         private jwtService: JwtService,
     ) { }
 
-    async validateUser(accessCode: string): Promise<any> {
-        // Phase 1: Hardcoded check as per spec
-        // In future, check against DB
-        if (accessCode === 'xxxx') {
-            // Return a mock user for now
-            return { userId: 'mock-uuid', username: 'Member', tier: 'PLATINUM' };
+    async validateUser(email: string, pass: string): Promise<any> {
+        const user = await this.usersService.findByEmail(email);
+        if (user && user.password === pass) { // TODO: Use bcrypt
+            const { password, ...result } = user;
+            return result;
         }
         return null;
     }

@@ -1,22 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import Anthropic from '@anthropic-ai/sdk';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import Parser from 'rss-parser';
+import { Insight } from './entities/insight.entity';
 
 @Injectable()
 export class InsightsService {
     private readonly logger = new Logger(InsightsService.name);
-    private supabase: SupabaseClient;
     private anthropic: Anthropic;
     private parser: Parser;
 
-    constructor(private configService: ConfigService) {
-        this.supabase = createClient(
-            this.configService.get<string>('SUPABASE_URL') || '',
-            this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') || '',
-        );
+    constructor(
+        private configService: ConfigService,
+        @InjectRepository(Insight)
+        private insightsRepository: Repository<Insight>,
+    ) {
         this.anthropic = new Anthropic({
             apiKey: this.configService.get<string>('ANTHROPIC_API_KEY') || '',
         });
@@ -38,12 +39,11 @@ export class InsightsService {
     }
 
     async fetchAndSummarizeNews() {
+        // Limited feed for demo/stability
         const feeds = [
             { url: 'https://techcrunch.com/feed/', source: 'TechCrunch', country: 'US' },
             { url: 'https://venturebeat.com/feed/', source: 'VentureBeat', country: 'US' },
-            { url: 'https://asia.nikkei.com/rss/feed/nar', source: 'Nikkei Asia', country: 'JP' },
-            { url: 'https://platum.kr/feed', source: 'Platum', country: 'KR' },
-            { url: 'https://finance.yahoo.com/news/rssindex', source: 'Yahoo Finance', country: 'Global' },
+            // Add more reliable feeds as needed
         ];
 
         for (const feedInfo of feeds) {
@@ -54,11 +54,9 @@ export class InsightsService {
                 for (const item of latestItems) {
                     if (!item.link || !item.title) continue;
 
-                    const { data: existing } = await this.supabase
-                        .from('insights')
-                        .select('id')
-                        .eq('original_url', item.link)
-                        .single();
+                    const existing = await this.insightsRepository.findOne({
+                        where: { original_url: item.link },
+                    });
 
                     if (existing) {
                         this.logger.debug(`Skipping existing item: ${item.title}`);
@@ -111,8 +109,8 @@ JSON만 응답하세요.`,
                 ],
             });
 
-            const responseText =
-                message.content[0].type === 'text' ? message.content[0].text : '{}';
+            const block = message.content[0];
+            const responseText = block.type === 'text' ? block.text : '{}';
             return JSON.parse(responseText);
         } catch (error) {
             this.logger.error(`AI Analysis failed for ${item.title}`, error);
@@ -121,33 +119,31 @@ JSON만 응답하세요.`,
     }
 
     private async saveInsight(item: any, feedInfo: any, analysis: any) {
-        const { error } = await this.supabase.from('insights').insert({
-            source: feedInfo.source,
-            country: feedInfo.country,
-            original_url: item.link,
-            original_title: item.title,
-            ai_summary: analysis.summary?.join('\n') || '',
-            action_idea: analysis.action_idea || '',
-            kr_check_similar: analysis.kr_check?.similar_service || '',
-            kr_check_regulation: analysis.kr_check?.regulation || '',
-            kr_check_barrier: analysis.kr_check?.barrier || '',
-            created_at: new Date().toISOString(),
-        });
+        try {
+            const insight = this.insightsRepository.create({
+                source: feedInfo.source,
+                country: feedInfo.country,
+                original_url: item.link,
+                original_title: item.title,
+                ai_summary: analysis.summary?.join('\n') || '',
+                action_idea: analysis.action_idea || '',
+                kr_check_similar: analysis.kr_check?.similar_service || '',
+                kr_check_regulation: analysis.kr_check?.regulation || '',
+                kr_check_barrier: analysis.kr_check?.barrier || '',
+            });
 
-        if (error) {
-            this.logger.error(`Supabase Insert Error: ${error.message}`);
-        } else {
+            await this.insightsRepository.save(insight);
             this.logger.log(`Saved insight: ${item.title}`);
+        } catch (error) {
+            // Type assertion to handle 'unknown' error type
+            const err = error as Error;
+            this.logger.error(`Database Insert Error: ${err.message}`);
         }
     }
 
     async findAll() {
-        const { data, error } = await this.supabase
-            .from('insights')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        return data;
+        return this.insightsRepository.find({
+            order: { created_at: 'DESC' },
+        });
     }
 }
