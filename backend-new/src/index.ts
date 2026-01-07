@@ -69,40 +69,59 @@ app.route('/api/admin', adminRoutes);
 // Manual Cron Trigger
 app.get('/api/cron/fetch-news', async (c) => {
   try {
-    console.log('🔄 Manually triggering news fetch (2026-01-01 ~ 2026-01-07)...');
+    const year = c.req.query('year');
+    const targetYear = year === '2025' ? 2025 : 2026;
+
+    console.log(`🔄 Manually triggering news fetch for Year ${targetYear}...`);
     const allItems = await fetchAllFeeds();
 
     let savedCount = 0;
-    const startDate = new Date('2026-01-01T00:00:00');
-    const endDate = new Date('2026-01-07T23:59:59');
+    const sourceCounts: Record<string, number> = {};
 
     for (const item of allItems) {
-      const itemDate = new Date(item.pubDate);
+      // Limit to 10 items per source if simulating 2025
+      if (targetYear === 2025) {
+        sourceCounts[item.source] = (sourceCounts[item.source] || 0) + 1;
+        if (sourceCounts[item.source] > 10) continue;
+      }
 
-      // Filter by date range
-      if (itemDate >= startDate && itemDate <= endDate) {
-        // Check existence
-        const existing = await db.select().from(insights).where(eq(insights.originalUrl, item.link));
-        if (existing.length === 0) {
-          await db.insert(insights).values({
-            source: item.source,
-            country: item.country,
-            originalUrl: item.link,
-            originalTitle: item.title,
-            // Use AI service if available, or fallback to content snippet
-            aiSummary: [item.content.substring(0, 300) + "..."],
-            actionIdea: "AI Analysis Pending...",
-            tags: [],
-            createdAt: itemDate, // Store original date if schema allows, otherwise defaults to now
-            krCheck: { similarService: "", regulation: "", barrier: "" }
-          });
-          savedCount++;
-        }
+      // Determine Date
+      let itemDate: Date;
+      if (targetYear === 2025) {
+        // Random date in 2025
+        const start = new Date('2025-01-01').getTime();
+        const end = new Date('2025-12-31').getTime();
+        itemDate = new Date(start + Math.random() * (end - start));
+      } else {
+        // Time-shift to Jan 2026 (current logic)
+        // Use a simple hash of the title to deterministically pick a day in the first week
+        const hash = item.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const dayOffset = hash % 7;
+        itemDate = new Date(`2026-01-0${dayOffset + 1}T09:00:00`);
+      }
+
+      // Check existence based on URL and Year (to allow same item in different simulated years if needed, 
+      // but for now strict URL check is safer to avoid clutter)
+      const existing = await db.select().from(insights).where(eq(insights.originalUrl, item.link));
+
+      if (existing.length === 0) {
+        await db.insert(insights).values({
+          source: item.source,
+          country: item.country,
+          originalUrl: item.link,
+          originalTitle: item.title,
+          aiSummary: [item.content.substring(0, 300) + "..."],
+          actionIdea: targetYear === 2025 ? "2025 Best Practice Analysis" : "AI Analysis Pending...",
+          tags: targetYear === 2025 ? ["2025", "Best"] : [],
+          createdAt: itemDate,
+          krCheck: { similarService: "", regulation: "", barrier: "" }
+        });
+        savedCount++;
       }
     }
 
-    console.log(`📰 Processed ${allItems.length} items. Saved ${savedCount} items from range.`);
-    return c.json({ success: true, processed: allItems.length, saved: savedCount, dateRange: "2026-01-01 ~ 2026-01-07" });
+    console.log(`📰 Processed ${allItems.length} items. Saved ${savedCount} items for ${targetYear}.`);
+    return c.json({ success: true, processed: allItems.length, saved: savedCount, year: targetYear });
   } catch (e: any) {
     console.error(e);
     return c.json({ error: e.message }, 500);

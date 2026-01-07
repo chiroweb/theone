@@ -1,15 +1,11 @@
 import { Hono } from 'hono';
-import applicationsRoutes from './applications';
-import usersRoutes from './users';
-// import postsRoutes from './posts';
-// import insightsRoutes from './insights';
+import applicationsRouter from './applications';
+import usersRouter from './users';
 
-const app = new Hono();
+const adminRouter = new Hono();
 
 // Admin Routes Mounting
-app.route('/applications', applicationsRoutes);
-app.route('/users', usersRoutes);
-// app.route('/posts', postsRoutes);
-// app.route('/insights', insightsRoutes);
+adminRouter.route('/applications', applicationsRouter);
+adminRouter.route('/users', usersRouter);
 
-export default app;
+export default adminRouter;

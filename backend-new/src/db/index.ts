@@ -9,6 +9,7 @@ const client = postgres(connectionString, {
   max: 10, // 최대 연결 수
   idle_timeout: 20,
   connect_timeout: 10,
+  ssl: 'require', // RDS requires SSL for public access
 });
 
 // Drizzle ORM 인스턴스
