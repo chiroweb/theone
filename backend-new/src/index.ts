@@ -13,6 +13,11 @@ import postsRoutes from './routes/posts';
 import insightsRoutes from './routes/insights';
 import uploadsRoutes from './routes/uploads';
 import adminRoutes from './routes/admin';
+import { fetchAllFeeds } from './services/rss';
+import { analyzeNews } from './services/claude';
+import { db } from './db';
+import { insights } from './db/schema';
+import { eq } from 'drizzle-orm';
 
 const app = new Hono();
 
@@ -61,6 +66,49 @@ app.route('/api/insights', insightsRoutes);
 app.route('/api/uploads', uploadsRoutes);
 app.route('/api/admin', adminRoutes);
 
+// Manual Cron Trigger
+app.get('/api/cron/fetch-news', async (c) => {
+  try {
+    console.log('🔄 Manually triggering news fetch (2026-01-01 ~ 2026-01-07)...');
+    const allItems = await fetchAllFeeds();
+
+    let savedCount = 0;
+    const startDate = new Date('2026-01-01T00:00:00');
+    const endDate = new Date('2026-01-07T23:59:59');
+
+    for (const item of allItems) {
+      const itemDate = new Date(item.pubDate);
+
+      // Filter by date range
+      if (itemDate >= startDate && itemDate <= endDate) {
+        // Check existence
+        const existing = await db.select().from(insights).where(eq(insights.originalUrl, item.link));
+        if (existing.length === 0) {
+          await db.insert(insights).values({
+            source: item.source,
+            country: item.country,
+            originalUrl: item.link,
+            originalTitle: item.title,
+            // Use AI service if available, or fallback to content snippet
+            aiSummary: [item.content.substring(0, 300) + "..."],
+            actionIdea: "AI Analysis Pending...",
+            tags: [],
+            createdAt: itemDate, // Store original date if schema allows, otherwise defaults to now
+            krCheck: { similarService: "", regulation: "", barrier: "" }
+          });
+          savedCount++;
+        }
+      }
+    }
+
+    console.log(`📰 Processed ${allItems.length} items. Saved ${savedCount} items from range.`);
+    return c.json({ success: true, processed: allItems.length, saved: savedCount, dateRange: "2026-01-01 ~ 2026-01-07" });
+  } catch (e: any) {
+    console.error(e);
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 // ============================================
 // 404 핸들러
 // ============================================
@@ -105,11 +153,6 @@ initSocket(server as any);
 
 // Cron Jobs
 import { CronJob } from 'cron';
-import { fetchAllFeeds } from './services/rss';
-import { analyzeNews } from './services/claude';
-import { db } from './db';
-import { insights } from './db/schema';
-import { eq } from 'drizzle-orm';
 
 // Run every 6 hours
 new CronJob('0 */6 * * *', async () => {

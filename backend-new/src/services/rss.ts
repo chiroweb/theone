@@ -33,7 +33,7 @@ export async function fetchFeed(feedInfo: typeof RSS_FEEDS[0]) {
   try {
     const feed = await parser.parseURL(feedInfo.url);
 
-    return feed.items.slice(0, 5).map(item => ({
+    return feed.items.slice(0, 50).map(item => ({
       title: item.title || '',
       content: item.contentSnippet || item.content || '',
       link: item.link || '',

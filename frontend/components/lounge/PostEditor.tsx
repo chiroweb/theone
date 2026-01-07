@@ -66,12 +66,36 @@ export function PostEditor() {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/posts`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    // Note: Auth token should be handled by httpOnly cookie or global interceptor.
+                    // If using localStorage token: "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title,
+                    content,
+                    category,
+                    imageUrls: images,
+                    tags,
+                }),
+            });
 
-        toast.success("게시글이 성공적으로 등록되었습니다.");
-        router.push("/lounge");
-        setIsSubmitting(false);
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || "게시글 작성에 실패했습니다.");
+            }
+
+            toast.success("게시글이 성공적으로 등록되었습니다.");
+            router.push("/lounge");
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleSaveDraft = () => {
